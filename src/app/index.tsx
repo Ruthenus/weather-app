@@ -1,25 +1,27 @@
-import { getCurrentWeather } from "@/services/weatherService";
-import { useState, useEffect } from "react";
-import { Weather } from "@/types/weather";
+import {
+  getCurrentWeather,
+  getForecastWeather,
+} from "@/services/weatherService";
+import { Forecast, Weather } from "@/types/weather";
+import { useEffect, useState } from "react";
 
 import {
-  Text,
-  View,
-  StyleSheet,
   ActivityIndicator,
-  Pressable,
   ScrollView,
+  StyleSheet,
+  Text,
+  View
 } from "react-native";
 
 import CurrentWeather from "@/components/CurrentWeather";
 import ForecastWeather from "@/components/ForecastWeather";
 import SearchBar from "@/components/SearchBar";
-import WeatherDetails from "@/components/WeatherDetails";
 
 export default function Index() {
   // Data:
   const [city, setCity] = useState<string>("Odesa");
   const [weather, setWeather] = useState<Weather | null>(null);
+  const [forecast, setForecast] = useState<Forecast | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,12 +36,19 @@ export default function Index() {
     // 2
     try {
       setLoading(true);
+      setError(null);
+
       const result = await getCurrentWeather(cityName);
       console.log(result);
       setWeather(result);
+
+      const forecastResult = await getForecastWeather(cityName);
+      console.log(forecastResult);
+      setForecast(forecastResult);
     } catch (err: any) {
       // 3
       setWeather(null);
+      setForecast(null);
       setError("Помилка завантаження погоди: " + err.message);
     } finally {
       // 4
@@ -71,14 +80,22 @@ export default function Index() {
           <Text style={styles.loadingText}>Отримання даних про погоду...</Text>
         </View>
       )}
+      {error && !loading && (
+        <View style={styles.error}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      )}
       {weather && !loading && (
         <View>
           <CurrentWeather weather={weather} />
         </View>
       )}
-
-      <WeatherDetails />
-      <ForecastWeather />
+      {forecast && !loading && (
+        <View>
+          <ForecastWeather forecast={forecast} />
+        </View>
+      )}
+      {/* <WeatherDetails /> */}
     </ScrollView>
   );
 }
@@ -156,5 +173,3 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
 });
-
-// Домашнє завдання ForecastWeather 01:13:00, 01:13:31
