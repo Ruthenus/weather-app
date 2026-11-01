@@ -35,7 +35,7 @@ export default function Index() {
     try {
       setLoading(true);
       const result = await getCurrentWeather(cityName);
-      // console.log(result);
+      console.log(result);
       setWeather(result);
     } catch (err: any) {
       // 3
