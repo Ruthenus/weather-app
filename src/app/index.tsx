@@ -2,7 +2,7 @@ import {
   getCurrentWeather,
   getForecastWeather,
 } from "@/services/weatherService";
-import { Forecast, Weather } from "@/types/weather";
+import { Forecast, ForecastDay, Weather } from "@/types/weather";
 import { useEffect, useState } from "react";
 
 import {
@@ -10,20 +10,82 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  View
+  View,
 } from "react-native";
 
 import CurrentWeather from "@/components/CurrentWeather";
 import ForecastWeather from "@/components/ForecastWeather";
 import SearchBar from "@/components/SearchBar";
+import WeatherDetails, {
+  WeatherDetailsData,
+} from "@/components/WeatherDetails";
 
 export default function Index() {
   // Data:
   const [city, setCity] = useState<string>("Odesa");
   const [weather, setWeather] = useState<Weather | null>(null);
   const [forecast, setForecast] = useState<Forecast | null>(null);
+  const [details, setDetails] = useState<WeatherDetailsData | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+function openTodayDetails() {
+  if (!weather) return;
+
+  const today = forecast?.forecast.forecastday[0];
+
+  setDetails({
+    title: "Деталі · сьогодні",
+    city: weather.location.name,
+    date: today?.date,
+    temp_c: weather.current.temp_c,
+    feelslike_c: weather.current.feelslike_c,
+    condition: weather.current.condition,
+    humidity: weather.current.humidity,
+    wind_kph: weather.current.wind_kph,
+    wind_dir: weather.current.wind_dir,
+    pressure_mb: weather.current.pressure_mb,
+    vis_km: weather.current.vis_km,
+    uv: weather.current.uv,
+    cloud: weather.current.cloud,
+    mintemp_c: today?.day.mintemp_c,
+    maxtemp_c: today?.day.maxtemp_c,
+    avgtemp_c: today?.day.avgtemp_c,
+    daily_chance_of_rain: today?.day.daily_chance_of_rain,
+    totalprecip_mm: today?.day.totalprecip_mm,
+    maxwind_kph: today?.day.maxwind_kph,
+    sunrise: today?.astro.sunrise,
+    sunset: today?.astro.sunset,
+    last_updated: weather.current.last_updated,
+  });
+}
+
+function openDayDetails(day: ForecastDay, index: number) {
+  const title =
+    index === 0
+      ? "Деталі · сьогодні"
+      : index === 1
+        ? "Деталі · завтра"
+        : "Деталі · післязавтра";
+
+  setDetails({
+    title,
+    city: forecast?.location.name,
+    date: day.date,
+    temp_c: day.day.avgtemp_c,
+    mintemp_c: day.day.mintemp_c,
+    maxtemp_c: day.day.maxtemp_c,
+    avgtemp_c: day.day.avgtemp_c,
+    condition: day.day.condition,
+    humidity: day.day.avghumidity,
+    maxwind_kph: day.day.maxwind_kph,
+    uv: day.day.uv,
+    daily_chance_of_rain: day.day.daily_chance_of_rain,
+    totalprecip_mm: day.day.totalprecip_mm,
+    sunrise: day.astro.sunrise,
+    sunset: day.astro.sunset,
+  });
+}
 
   // loadWeather():
   async function loadWeather(cityName: string) {
@@ -37,6 +99,7 @@ export default function Index() {
     try {
       setLoading(true);
       setError(null);
+      setDetails(null);
 
       const result = await getCurrentWeather(cityName);
       console.log(result);
@@ -49,6 +112,7 @@ export default function Index() {
       // 3
       setWeather(null);
       setForecast(null);
+      setDetails(null);
       setError("Помилка завантаження погоди: " + err.message);
     } finally {
       // 4
@@ -87,15 +151,20 @@ export default function Index() {
       )}
       {weather && !loading && (
         <View>
-          <CurrentWeather weather={weather} />
+          <CurrentWeather weather={weather} onPress={openTodayDetails} />
         </View>
       )}
       {forecast && !loading && (
         <View>
-          <ForecastWeather forecast={forecast} />
+          <ForecastWeather
+            forecast={forecast}
+            onDayPress={openDayDetails}
+          />
         </View>
       )}
-      {/* <WeatherDetails /> */}
+      {details && !loading && (
+        <WeatherDetails data={details} onClose={() => setDetails(null)} />
+      )}
     </ScrollView>
   );
 }

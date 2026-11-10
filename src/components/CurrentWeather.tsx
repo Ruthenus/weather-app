@@ -1,64 +1,67 @@
 import { Weather } from "@/types/weather";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
 interface CurrentWeatherProps {
   weather: Weather;
+  onPress?: () => void;
 }
 
 export default function CurrentWeather(props: CurrentWeatherProps) {
   // 1
-  const { weather } = props;
+  const { weather, onPress } = props;
   const icon = `https:${weather.current.condition.icon}`;
   //
   return (
-    <View style={styles.card}>
-      <View style={styles.location}>
-        <Text style={[styles.city, { color: "teal" }]}>
-          {weather.location.name}
-        </Text>
-        <Text
-          style={[
-            styles.country,
-            {
-              color: "gray",
-              fontSize: 18,
-              fontWeight: 700,
-            },
-          ]}
-        >
-          {weather.location.country}
-        </Text>
-      </View>
-      <View style={styles.main}>
-        <Image source={{ uri: icon }} style={styles.icon} />
-        <View>
+    <Pressable onPress={onPress}>
+      <View style={styles.card}>
+        <View style={styles.location}>
+          <Text style={[styles.city, { color: "teal" }]}>
+            {weather.location.name}
+          </Text>
           <Text
             style={[
-              styles.temperature,
+              styles.country,
               {
-                color: "red",
-                fontWeight: 500,
+                color: "gray",
+                fontSize: 18,
+                fontWeight: 700,
               },
             ]}
           >
-            {Math.round(weather.current.temp_c)}&deg;C
+            {weather.location.country}
           </Text>
-          <Text style={styles.condition}>{weather.current.condition.text}</Text>
         </View>
+        <View style={styles.main}>
+          <Image source={{ uri: icon }} style={styles.icon} />
+          <View>
+            <Text
+              style={[
+                styles.temperature,
+                {
+                  color: "red",
+                  fontWeight: 500,
+                },
+              ]}
+            >
+              {Math.round(weather.current.temp_c)}&deg;C
+            </Text>
+            <Text style={styles.condition}>{weather.current.condition.text}</Text>
+          </View>
+        </View>
+        <Text
+          style={[
+            styles.updated,
+            {
+              color: "navy",
+              fontSize: 18,
+              fontWeight: 500,
+            },
+          ]}
+        >
+          Оновлено: {weather.current.last_updated}
+        </Text>
       </View>
-      <Text
-        style={[
-          styles.updated,
-          {
-            color: "navy",
-            fontSize: 18,
-            fontWeight: 500,
-          },
-        ]}
-      >
-        Оновлено: {weather.current.last_updated}
-      </Text>
-    </View>
+    </Pressable>
   );
 }
 

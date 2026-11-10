@@ -1,13 +1,15 @@
-import { Forecast } from "@/types/weather";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Forecast, ForecastDay } from "@/types/weather";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
 interface ForecastWeatherProps {
   forecast: Forecast;
+  onDayPress?: (day: ForecastDay, index: number) => void;
 }
 
 export default function ForecastWeather(props: ForecastWeatherProps) {
   // 1
-  const { forecast } = props;
+  const { forecast, onDayPress } = props;
+  const days = forecast.forecast.forecastday.slice(0, 3);
   //
   return (
     <View style={styles.card}>
@@ -33,37 +35,47 @@ export default function ForecastWeather(props: ForecastWeatherProps) {
           {forecast.location.name}
         </Text>
       </View>
-      {forecast.forecast.forecastday.map((item) => {
+      {days.map((item, index) => {
         const icon = `https:${item.day.condition.icon}`;
+        const dayLabel =
+          index === 0
+            ? "Сьогодні"
+            : index === 1
+              ? "Завтра"
+              : "Післязавтра";
+
         return (
-          <View key={item.date} style={styles.day}>
-            <View style={styles.dateRow}>
-              <Text style={styles.date}>{item.date}</Text>
-              <Text style={styles.astro}>
-                🌅 {item.astro.sunrise} · 🌇 {item.astro.sunset}
-              </Text>
-            </View>
-            <View style={styles.main}>
-              <Image source={{ uri: icon }} style={styles.icon} />
-              <View>
-                <Text
-                  style={[
-                    styles.temperature,
-                    {
-                      color: "red",
-                    },
-                  ]}
-                >
-                  {Math.round(item.day.avgtemp_c)}&deg;C
+          <Pressable
+            key={item.date}
+            onPress={() => onDayPress?.(item, index)}
+          >
+            <View style={styles.day}>
+              <View style={styles.dateRow}>
+                <Text style={styles.date}>
+                  {dayLabel} · {item.date}
                 </Text>
-                <Text style={styles.condition}>{item.day.condition.text}</Text>
-                <Text style={styles.minMax}>
-                  мін. {Math.round(item.day.mintemp_c)}&deg;C · макс.{" "}
-                  {Math.round(item.day.maxtemp_c)}&deg;C
+                <Text style={styles.astro}>
+                  🌅 {item.astro.sunrise} · 🌇 {item.astro.sunset}
                 </Text>
               </View>
+              <View style={styles.main}>
+                <Image source={{ uri: icon }} style={styles.icon} />
+                <View>
+                  <Text style={[styles.temperature, { color: "red" }]}>
+                    {Math.round(item.day.avgtemp_c)}&deg;C
+                  </Text>
+                  <Text style={styles.condition}>
+                    {item.day.condition.text}
+                  </Text>
+                  <Text style={styles.minMax}>
+                    мін. {Math.round(item.day.mintemp_c)}&deg;C · макс.{" "}
+                    {Math.round(item.day.maxtemp_c)}&deg;C
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.hint}>Натисніть для деталей</Text>
             </View>
-          </View>
+          </Pressable>
         );
       })}
     </View>
@@ -147,5 +159,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#888",
     marginTop: 2,
+  },
+
+  hint: {
+    marginTop: 6,
+    fontSize: 12,
+    color: "#2563eb",
   },
 });
